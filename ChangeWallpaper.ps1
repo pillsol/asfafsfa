@@ -21,7 +21,7 @@
 .NOTES
     This script can be run as is with the provided execution file
 .DESCRIPTION 
-    This script will download a specific image and change the wallpaper for 30 seconds before reverting to the original wallpaper.
+    This script will download a specific image, change the wallpaper for 30 seconds, and then revert to the original wallpaper.
 #>
 
 ############################################################################################################################################################
@@ -61,7 +61,6 @@ Function Set-WallPaper {
   
 #>
 
- 
 param (
     [parameter(Mandatory=$True)]
     # Provide path to image
@@ -71,7 +70,7 @@ param (
     [ValidateSet('Fill', 'Fit', 'Stretch', 'Tile', 'Center', 'Span')]
     [string]$Style
 )
- 
+
 $WallpaperStyle = Switch ($Style) {
   
     "Fill" {"10"}
@@ -82,24 +81,23 @@ $WallpaperStyle = Switch ($Style) {
     "Span" {"22"}
   
 }
- 
+
 If($Style -eq "Tile") {
- 
+
     New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
     New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 1 -Force
- 
-}
-Else {
- 
+
+} Else {
+
     New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WallpaperStyle -PropertyType String -Value $WallpaperStyle -Force
     New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name TileWallpaper -PropertyType String -Value 0 -Force
- 
+
 }
- 
+
 Add-Type -TypeDefinition @" 
 using System; 
 using System.Runtime.InteropServices;
-  
+
 public class Params
 { 
     [DllImport("User32.dll",CharSet=CharSet.Unicode)] 
@@ -110,15 +108,15 @@ public class Params
 }
 "@ 
   
-    $SPI_SETDESKWALLPAPER = 0x0014
-    $UpdateIniFile = 0x01
-    $SendChangeEvent = 0x02
-  
-    $fWinIni = $UpdateIniFile -bor $SendChangeEvent
-  
-    $ret = [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $Image, $fWinIni)
+$SPI_SETDESKWALLPAPER = 0x0014
+$UpdateIniFile = 0x01
+$SendChangeEvent = 0x02
+
+$fWinIni = $UpdateIniFile -bor $SendChangeEvent
+
+$ret = [Params]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $Image, $fWinIni)
 }
- 
+
 #----------------------------------------------------------------------------------------------------
 
 <#
@@ -148,7 +146,7 @@ $o=New-Object -ComObject WScript.Shell
 Pause-Script
 
 # Set the new wallpaper
-Set-WallPaper -Image "$env:TMP\i.png" -Style Center
+Set-WallPaper -Image "$imagePath" -Style Center
 
 # Wait for 30 seconds before reverting the wallpaper
 Start-Sleep -Seconds 30
