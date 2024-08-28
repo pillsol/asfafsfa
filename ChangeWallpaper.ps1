@@ -21,18 +21,15 @@
 .NOTES
 	This script can be run as is with the provided execution file
 .DESCRIPTION 
-	This script will download a specific image, change the wallpaper for 30 seconds, and then revert to the original wallpaper.
+	This script will download a specific image and change the wallpaper for 30 seconds before reverting to the original wallpaper.
 #>
 
 ############################################################################################################################################################
 
-# Download the specific background image
-$imageUrl = "https://raw.githubusercontent.com/pillsol/asfafsfa/main/docs/2.png"
+# Download the specific image
+$imageUrl = "https://i.imgur.com/j79rMvu.png"
 
 iwr $imageUrl -O $env:TMP\i.png
-
-# Get the current wallpaper path
-$currentWallpaper = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
 
 #----------------------------------------------------------------------------------------------------
 
@@ -121,15 +118,38 @@ public class Params
  
 #----------------------------------------------------------------------------------------------------
 
-Pause-Script
+<#
 
-# Set the downloaded wallpaper
+.NOTES 
+	This is to pause the script until a mouse movement is detected
+#>
+
+function Pause-Script{
+Add-Type -AssemblyName System.Windows.Forms
+$originalPOS = [System.Windows.Forms.Cursor]::Position.X
+$o=New-Object -ComObject WScript.Shell
+
+    while (1) {
+        $pauseTime = 3
+        if ([Windows.Forms.Cursor]::Position.X -ne $originalPOS){
+            break
+        }
+        else {
+            $o.SendKeys("{CAPSLOCK}");Start-Sleep -Seconds $pauseTime
+        }
+    }
+}
+
+#----------------------------------------------------------------------------------------------------
+
+Pause-Script
 Set-WallPaper -Image "$env:TMP\i.png" -Style Center
 
 # Wait for 30 seconds before reverting the wallpaper
 Start-Sleep -Seconds 30
 
 # Revert to the original wallpaper
+$currentWallpaper = (Get-ItemProperty -Path 'HKCU:\Control Panel\Desktop' -Name Wallpaper).Wallpaper
 Set-WallPaper -Image $currentWallpaper -Style Center
 
 #----------------------------------------------------------------------------------------------------
@@ -148,7 +168,7 @@ rm $env:TEMP\* -r -Force -ErrorAction SilentlyContinue
 
 reg delete HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU /va /f
 
-# Delete PowerShell history
+# Delete powershell history
 
 Remove-Item (Get-PSreadlineOption).HistorySavePath
 
